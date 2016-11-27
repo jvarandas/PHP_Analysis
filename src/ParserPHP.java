@@ -1,20 +1,19 @@
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatternsParser {
+public class ParserPHP {
 	
 	private String _file;
 	
-	public PatternsParser(){
-		_file = "patterns.txt";
+	public ParserPHP(String file){
+		_file = file;
 	}
 	
-	public List<List<String>> parsePatternsList() throws IOException{
+	public List<List<String>> parsePHP() throws IOException{
 		
 		BufferedReader br = new BufferedReader(new FileReader(_file));
 		String line = new String();
@@ -26,11 +25,12 @@ public class PatternsParser {
 		
 		while(line != null){
 			
-			aux = line.split(" ");
+			aux = line.split("=");
 			
 			for(String s: aux)
 				if(!s.trim().isEmpty())
-					vuln.add(s.trim());
+					vuln.add(s.trim());			
+			
 			
 			if(!vuln.isEmpty())
 				vulnerabilities.add(vuln);
@@ -44,4 +44,5 @@ public class PatternsParser {
 		
 		return vulnerabilities;
 	}
+	
 }
