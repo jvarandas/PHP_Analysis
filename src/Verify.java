@@ -10,7 +10,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("xss_01.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		Map<String, String> test = new HashMap<String, String>();
 		
@@ -26,6 +26,39 @@ public class Verify {
 		System.out.println("");
 		System.out.println(test);
 		
+	}
+	
+	public static List<List<String>> buildAdjacencyList(List<List<String>> patterns, List<List<String>> code){
+		
+		List<List<String>> res = new ArrayList<List<String>>();
+		List<String> nodes = new ArrayList<String>();
+		
+		nodes = generateNodes(code);
+		return res;
+	}
+	
+	public static List<String> generateNodes(List<List<String>> code){
+		
+		List<String> nodes = new ArrayList<String>();
+		
+		if(!code.isEmpty()){
+			for(List<String> l: code){
+					
+				if(l.size()>1)
+					if(l.get(0).startsWith("$"))
+						nodes.add(l.get(0));
+			}
+		}
+		
+		return nodes;
+	}
+	
+	public static List<List<String>> generateDependencies(List<List<String>> code){
+		
+		List<List<String>> dependencies = new ArrayList<List<String>>();
+		
+		
+		return dependencies;
 	}
 	
 	public static Map<String,String> varNature(List<List<String>> patterns, List<List<String>> code){
@@ -72,11 +105,7 @@ public class Verify {
 		
 		List<String> aux = new ArrayList<String>();
 		
-		if(!code.isEmpty()){
-			for(List<String> list: code)
-				if(!list.isEmpty() && list.size()>1)
-					aux.add(list.get(0));
-		}
+		aux = generateNodes(code);
 		
 		if(aux != null){
 			
