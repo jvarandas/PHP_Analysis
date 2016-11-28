@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("xss_03.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -25,7 +25,6 @@ public class Verify {
 		vuln = vulnerability(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
-		System.out.println(adjacency_list);
 		System.out.println(resultado+ " -> "+ vuln);
 	}
 	
@@ -138,6 +137,23 @@ public class Verify {
 				
 				aglumerado = new ArrayList<String>();
 			}
+			else if(list.size() == 1){
+				if(nature_of_vars.size()>=1){
+					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
+							if(nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
+						
+								aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
+					}
+					else
+						aglumerado.add(list.get(0));
+				}
+				else{
+					aglumerado.add(list.get(0));
+				}
+			}
+			
+			if(!aglumerado.isEmpty())
+				adjacency_list.add(aglumerado);
 		}
 		
 		return adjacency_list;
@@ -167,6 +183,18 @@ public class Verify {
 						else{
 							aux.add("sentence"+k++);
 						}
+					}
+				}
+				else if(l.size() == 1){
+					if(l.get(0).startsWith("$"))
+						aux.add(l.get(0));
+					
+					vars = varsUsed(code, l.get(0));
+					
+					if(vars != null)
+						aux.add(vars);
+					else{
+						aux.add("sentence"+k++);
 					}
 				}
 				
@@ -216,8 +244,6 @@ public class Verify {
 					return "sensitive";
 				else if(str_code.contains(s) && l.contains("sanitization"))
 					return "sanitization";
-				else if(str_code.contains(s) && l.contains("input"))
-					return "input";
 			}
 		}
 		
