@@ -11,20 +11,21 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("xss_01.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
+		String vuln = new String();
 		
 		
 		patterns = patterns_parser.parsePatternsList();
 		php_code = php_parser.parsePHP();
 		
 		adjacency_list = buildAdjacencyList(php_code, patterns);
+		vuln = vulnerability(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
-		System.out.println(adjacency_list);
-		System.out.println(resultado);
+		System.out.println(resultado+ " -> "+ vuln);
 	}
 	
 	
@@ -50,6 +51,8 @@ public class Verify {
 								var = aux[0];
 							}
 						}
+						else if(aux[1].equals("sanitization") && aux[0].contains("sentence"))
+							return "Seguro";
 					}
 				}
 			}
@@ -109,7 +112,7 @@ public class Verify {
 			if(list.size()>1){
 				
 				if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0)) && 
-						nature_of_vars.get(list.get(0)).equals("sensitive"))
+						nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
 					
 					aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
 				else
@@ -209,6 +212,29 @@ public class Verify {
 		}
 		
 		return "neither";
+	}
+	
+	public static String vulnerability(List<List<String>> code, List<List<String>> pattern){
+		
+		String res = new String();
+		
+		for(List<String> l: code){
+			for(String s: l){
+				for(List<String> list: pattern){
+					for(String str: list){
+						
+						if(str.equals("SQLI"))
+							res = "SQLI";
+						else if(str.equals("XSS"))
+							res = "XSS";
+						
+						if(s.contains(str)) return res;
+					}
+				}
+			}
+		}
+		
+		return "unknown";
 	}
 	
 	public static String varsUsed(List<List<String>> code, String var){ //REVER
