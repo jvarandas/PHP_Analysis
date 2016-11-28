@@ -10,7 +10,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("xss_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		Map<String, String> test = new HashMap<String, String>();
 		
@@ -19,6 +19,11 @@ public class Verify {
 		
 		test = varNature(patterns, php_code);
 		
+		for(List<String> l: php_code)
+			for(String s: l)
+				System.out.println(s + " :variaveis usadas ->" + varsUsed(php_code, s));
+		
+		System.out.println("");
 		System.out.println(test);
 		
 	}
@@ -33,11 +38,13 @@ public class Verify {
 			for(String s: list){
 				
 				nature = existsIn(patterns, s);
-				if(nature != null){
-					aux = varsUsed(code, s);
-					if(aux != null){
+				aux = varsUsed(code, s);
+				if(aux != null){
+					var_nature.put(aux, nature);
+				}
+				else{
+					if(nature.equals("sensitive") || nature.equals("sanitization"))
 						var_nature.put(aux, nature);
-					}
 				}
 			}
 		}
@@ -53,6 +60,8 @@ public class Verify {
 					return "sensitive";
 				else if(str_code.contains(s) && l.contains("sanitization"))
 					return "sanitization";
+				else if(str_code.contains(s) && l.contains("input"))
+					return "input";
 			}
 		}
 		
@@ -64,19 +73,21 @@ public class Verify {
 		List<String> aux = new ArrayList<String>();
 		
 		if(!code.isEmpty()){
-			for(List<String> list: code){
-				if(!list.isEmpty())
+			for(List<String> list: code)
+				if(!list.isEmpty() && list.size()>1)
 					aux.add(list.get(0));
-			}
 		}
 		
-		for(String s: aux)
-			if(var.equals(s))
-				return s;
-		
-		for(String s: aux)
-			if(var.contains(s))
-				return s;
+		if(aux != null){
+			
+			for(String s: aux)
+				if(var.equals(s))
+					return s;
+			
+			for(String s: aux)
+				if(var.contains(s))
+					return s;
+		}
 		
 		return null;
 	}
