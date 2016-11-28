@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("xss_02.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -25,6 +25,7 @@ public class Verify {
 		vuln = vulnerability(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
+		System.out.println(adjacency_list);
 		System.out.println(resultado+ " -> "+ vuln);
 	}
 	
@@ -111,12 +112,17 @@ public class Verify {
 			
 			if(list.size()>1){
 				
-				if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0)) && 
-						nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
-					
-					aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
-				else
+				if(nature_of_vars.size()>1){
+					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0)) && 
+							nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
+						
+						aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
+					else
+						aglumerado.add(list.get(0));
+				}
+				else{
 					aglumerado.add(list.get(0));
+				}
 				
 				for(int i=1; i<list.size(); i++){
 					
