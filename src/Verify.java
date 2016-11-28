@@ -239,6 +239,7 @@ public class Verify {
 							res = "XSS";
 						
 						if(s.contains(str))
+							if(list.contains("sanitization") || list.contains("sensitive"))
 								return res;
 					}
 				}
