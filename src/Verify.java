@@ -13,15 +13,13 @@ public class Verify {
 		List<List<String>> patterns = new ArrayList<List<String>>();
 		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
-		List<List<String>> dependencias = new ArrayList<List<String>>();
-		Map<String, String> test = new HashMap<String, String>();
+		List<List<String>> adjacency_list = new ArrayList<List<String>>();
+		
 		
 		patterns = patterns_parser.parsePatternsList();
 		php_code = php_parser.parsePHP();
 		
-		dependencias = buildAdjacencyList(php_code, patterns);
-		System.out.println("");
-		System.out.println(dependencias);
+		adjacency_list = buildAdjacencyList(php_code, patterns);
 	}
 	
 	
@@ -51,9 +49,6 @@ public class Verify {
 		
 		dependencies = generateDependencies(code);
 		nature_of_vars = varNature(patterns, code);
-		
-		System.out.println(dependencies);
-		System.out.println(nature_of_vars);
 		
 		for(List<String> list: dependencies){
 			
