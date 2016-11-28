@@ -11,17 +11,71 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("xss_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
+		String resultado = new String();
 		
 		
 		patterns = patterns_parser.parsePatternsList();
 		php_code = php_parser.parsePHP();
 		
 		adjacency_list = buildAdjacencyList(php_code, patterns);
+		resultado = computeResult(adjacency_list);
+		
+		System.out.println(adjacency_list);
+		System.out.println(resultado);
 	}
 	
+	
+	public static String computeResult(List<List<String>> adj_list){
+		
+		String[] aux;
+		String var = new String();
+		int index1=0;
+		int index2=0;
+		
+		for(List<String> l: adj_list){
+			for(String s: l){
+				
+				if(s.contains(":")){
+					
+					aux = s.split(":");
+					if(aux.length >= 2){
+						if(aux[1].equals("sensitive")){
+							if(aux[0].contains("sentence"))
+								return "Inseguro";
+							else{
+								index1 = l.indexOf(s);
+								var = aux[0];
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		for(List<String> l: adj_list){
+			for(String s: l){
+				
+				if(s.contains(":")){
+					if(s.contains(var)){
+						
+						aux = s.split(":");
+						if(aux.length >= 2){
+							index2 = l.indexOf(s);
+							if(aux[1].equals("sensitive") && index2 < index1)
+								return "Seguro";
+							else
+								return "Inseguro";
+						}
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
 	
 	public static List<String> generateNodes(List<List<String>> code){
 		
@@ -53,7 +107,13 @@ public class Verify {
 		for(List<String> list: dependencies){
 			
 			if(list.size()>1){
-				aglumerado.add(list.get(0));
+				
+				if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0)) && 
+						nature_of_vars.get(list.get(0)).equals("sensitive"))
+					
+					aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
+				else
+					aglumerado.add(list.get(0));
 				
 				for(int i=1; i<list.size(); i++){
 					
