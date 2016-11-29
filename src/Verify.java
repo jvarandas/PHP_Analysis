@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_04.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_05.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -116,7 +116,7 @@ public class Verify {
 			for(List<String> l: code){
 					
 				if(l.size()>1)
-					if(l.get(0).startsWith("$"))
+					if(l.get(0).substring(0,2).trim().contains("$"))
 						nodes.add(l.get(0));
 			}
 		}
@@ -202,7 +202,7 @@ public class Verify {
 				if(l.size()>1){
 					for(int i=1; i<l.size(); i++){
 						
-						if(l.get(0).startsWith("$"))
+						if(l.get(0).substring(0,2).trim().contains("$"))
 							aux.add(l.get(0));
 						
 						vars = varsUsed(code, l.get(i));
@@ -216,7 +216,7 @@ public class Verify {
 					}
 				}
 				else if(l.size() == 1){
-					if(l.get(0).startsWith("$"))
+					if(l.get(0).substring(0,2).trim().contains("$"))
 						aux.add(l.get(0));
 					
 					vars = varsUsed(code, l.get(0));
