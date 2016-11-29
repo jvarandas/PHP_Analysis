@@ -25,7 +25,7 @@ public class ParserPHP {
 		
 		while(line != null){
 			
-			aux = line.split("[=;]");
+			aux = line.split("[=]");
 			
 			for(String s: aux)
 				if(!s.trim().isEmpty())

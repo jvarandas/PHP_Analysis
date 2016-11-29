@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_04.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -39,6 +39,7 @@ public class Verify {
 		int index1=0;
 		int index2=0;
 		
+		//REFAZER
 		if(adj_list.size()>1){
 			for(List<String> l: adj_list){
 				if(l.size()>1){
@@ -139,14 +140,13 @@ public class Verify {
 		for(List<String> list: dependencies){
 			
 			if(list.size()>1){
-				
 				if(nature_of_vars.size()>=1){
 					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
-							if(nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
+							if(nature_of_vars.get(list.get(0)).equals("sanitization") || nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("input"))
 						
 								aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
 					}
-					else
+					else if(!list.get(0).contains("sentence"))
 						aglumerado.add(list.get(0));
 				}
 				else{
@@ -169,13 +169,11 @@ public class Verify {
 			else if(list.size() == 1){
 				
 				if(nature_of_vars.size()>=1){
-					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
-							if(nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
-						
-								aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
+					if(nature_of_vars.containsKey(list.get(0))){
+						if(nature_of_vars.get(list.get(0)).equals("sanitization") || nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("input"))
+							
+							aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
 					}
-					else
-						aglumerado.add(list.get(0));
 				}
 				else{
 					aglumerado.add(list.get(0));
@@ -212,7 +210,8 @@ public class Verify {
 						if(vars != null)
 							aux.add(vars);
 						else{
-							aux.add("sentence"+k++);
+							aux.add("sentence"+k);
+							k++;
 						}
 					}
 				}
@@ -225,11 +224,12 @@ public class Verify {
 					if(vars != null)
 						aux.add(vars);
 					else{
-						//FAZER SPLIT DO XSS POR ESPACOS E VERIFICAR A NATUREZA DAS FUNCOES 1 A 1
 						vec = l.get(0).split(" ");
 						
-						for(String s: vec)
-							aux.add("sentence"+k++);
+						for(String s: vec){
+							aux.add("sentence"+k);
+							k++;
+						}
 					}
 				}
 				
@@ -254,35 +254,30 @@ public class Verify {
 		String[] vec;
 		
 		for(List<String> list: code){
-			if(list.size()>1){
-				for(String s: list){
+			if(!list.isEmpty()){
+				for(int i=0; i<list.size(); i++){
 					
-					nature = existsIn(patterns, s);
-					aux = varsUsed(code, s);
+					nature = existsIn(patterns, list.get(i));
+					aux = varsUsed(code, list.get(i));
 					if(aux != null){
 						var_nature.put(aux, nature);
 					}
 					else{
-						if(nature.equals("sensitive") || nature.equals("sanitization")){
-							var_nature.put("sentence"+k++, nature);
-						}
-					}
-				}
-			}
-			else if(list.size() == 1){
-				
-				vec = list.get(0).split(" ");
-				
-				for(String s: vec){
-					
-					nature = existsIn(patterns, s);
-					aux = varsUsed(code, s);
-					if(aux != null){
-						var_nature.put(aux, nature);
-					}
-					else{
-						if(nature.equals("sensitive") || nature.equals("sanitization") || nature.equals("input")){
-							var_nature.put("sentence"+k++, nature);
+						vec = list.get(i).split(" ");
+						
+						for(String str: vec){
+							
+							nature = existsIn(patterns, str);
+							aux = varsUsed(code, str);
+							if(aux != null){
+								var_nature.put(aux, nature);
+							}
+							else{
+								if(nature.equals("sensitive") || nature.equals("sanitization") || nature.equals("input")){
+									var_nature.put("sentence"+k, nature);
+									k++;
+								}
+							}
 						}
 					}
 				}
@@ -296,11 +291,11 @@ public class Verify {
 		
 		for(List<String> l: pattern){
 			for(String s: l){
-				if(str_code.contains(s) && l.contains("sensitive"))
+				if(str_code.contains(s) && l.contains("sensitive") && !str_code.contains("sensitive"))
 					return "sensitive";
-				else if(str_code.contains(s) && l.contains("sanitization"))
+				else if(str_code.contains(s) && l.contains("sanitization") && !str_code.contains("sanitization"))
 					return "sanitization";
-				else if(str_code.contains(s) && l.contains("input"))
+				else if(str_code.contains(s) && l.contains("input") && !str_code.contains("input"))
 					return "input";
 			}
 		}
@@ -333,7 +328,7 @@ public class Verify {
 		return "unknown";
 	}
 	
-	public static String varsUsed(List<List<String>> code, String var){ //REVER
+	public static String varsUsed(List<List<String>> code, String var){
 		
 		List<String> aux = new ArrayList<String>();
 		
