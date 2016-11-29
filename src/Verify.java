@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_05.txt");
+		ParserPHP php_parser = new ParserPHP("xss_04.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -20,8 +20,6 @@ public class Verify {
 		
 		patterns = patterns_parser.parsePatternsList();
 		php_code = php_parser.parsePHP();
-		
-		System.out.println(php_code);
 		
 		adjacency_list = buildAdjacencyList(php_code, patterns);
 		vuln = vulnerability(php_code, patterns);
@@ -131,11 +129,17 @@ public class Verify {
 		Map<String, String> nature_of_vars = new HashMap<String, String>();
 		List<String> aglumerado = new ArrayList<String>();
 		String aux = new String();
+		int flag =0;
+		List<List<String>> remove = new ArrayList<List<String>>();
+		List<String> remove_string = new ArrayList<String>();
+		List<String> unico = new ArrayList<String>();
+		String[] var;
 		
 		dependencies = generateDependencies(code);
 		nature_of_vars = varNature(patterns, code);
-		System.out.println(nature_of_vars);
+		
 		System.out.println(dependencies);
+		System.out.println(nature_of_vars);
 		
 		for(List<String> list: dependencies){
 			
@@ -169,8 +173,26 @@ public class Verify {
 			else if(list.size() == 1){
 				
 				if(nature_of_vars.size()>=1){
-					if(nature_of_vars.containsKey(list.get(0))){
+					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
 						if(nature_of_vars.get(list.get(0)).equals("sanitization") || nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("input"))
+							
+							aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
+					}
+					
+					//SE ENTRE DOIS NOS SO EXISTEM SENTENCES SEM SIGNIFICADO ENTAO ELES ESTAO LIGADOS ENTRE SI SQLI_4
+					else if(list.get(0).trim().startsWith("$") && nature_of_vars.containsKey(list.get(0))){
+						
+							for(int i=dependencies.indexOf(list)-1; i>0; i--){
+								for(String frase: dependencies.get(i)){	
+									if(nature_of_vars.containsKey(frase)){
+										aglumerado.add(frase);
+										flag = 1;
+										break;
+									}
+								}
+								
+								if(flag == 1) break;
+							}
 							
 							aglumerado.add(list.get(0)+":"+nature_of_vars.get(list.get(0)));
 					}
@@ -178,10 +200,47 @@ public class Verify {
 				else{
 					aglumerado.add(list.get(0));
 				}
+				
+				if(!aglumerado.isEmpty())
+					adjacency_list.add(aglumerado);
+				
+				aglumerado = new ArrayList<String>();
 			}
 			
 			if(!aglumerado.isEmpty())
 				adjacency_list.add(aglumerado);
+		}
+		
+		//REMOVER NOS QUE NAO TEM LIGACOES -- REVER
+		for(List<String> l: adjacency_list)
+			if(l.size()<2 && !l.isEmpty())
+				if(!l.get(0).contains(":"))
+					remove.add(l);
+		
+		adjacency_list.removeAll(remove);
+		
+		//REMOVER DUPLICADOS EM CADA LISTA
+		for(List<String> l: adjacency_list){
+			if(l.size()>1){
+				if(l.get(1).contains(":")){
+					var = l.get(1).split(":");
+					
+					if(l.get(0).equals(var[0])){
+						remove_string.addAll(l);
+						flag = 3;
+					}
+				}
+			}
+		}
+		
+		if(flag == 3){
+			remove = new ArrayList<List<String>>();
+			remove.add(remove_string);
+			
+			unico.add(remove_string.get(1));
+			
+			adjacency_list.add(unico);
+			adjacency_list.removeAll(remove);
 		}
 		
 		return adjacency_list;
