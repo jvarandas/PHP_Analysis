@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("xss_03.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -21,10 +21,13 @@ public class Verify {
 		patterns = patterns_parser.parsePatternsList();
 		php_code = php_parser.parsePHP();
 		
+		System.out.println(php_code);
+		
 		adjacency_list = buildAdjacencyList(php_code, patterns);
 		vuln = vulnerability(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
+		System.out.println(adjacency_list);
 		System.out.println(resultado+ " -> "+ vuln);
 	}
 	
@@ -36,45 +39,69 @@ public class Verify {
 		int index1=0;
 		int index2=0;
 		
-		for(List<String> l: adj_list){
-			for(String s: l){
-				
-				if(s.contains(":")){
-					
-					aux = s.split(":");
-					if(aux.length >= 2){
-						if(aux[1].equals("sensitive")){
-							if(aux[0].contains("sentence"))
-								return "Inseguro";
-							else{
-								index1 = l.indexOf(s);
-								var = aux[0];
+		if(adj_list.size()>1){
+			for(List<String> l: adj_list){
+				if(l.size()>1){
+					for(String s: l){
+						
+						if(s.contains(":")){
+							
+							aux = s.split(":");
+							if(aux.length >= 2){
+								if(aux[1].equals("sensitive")){
+									if(aux[0].contains("sentence"))
+										return "Inseguro";
+									else{
+										index1 = l.indexOf(s);
+										var = aux[0];
+									}
+								}
+								else if(aux[1].equals("sanitization") && aux[0].contains("sentence"))
+									return "Seguro";
 							}
 						}
-						else if(aux[1].equals("sanitization") && aux[0].contains("sentence"))
-							return "Seguro";
+					}
+				}
+			}
+			
+			for(List<String> l: adj_list){
+				for(String s: l){
+					
+					if(s.contains(":")){
+						if(s.contains(var)){
+							
+							aux = s.split(":");
+							if(aux.length >= 2){
+								index2 = l.indexOf(s);
+								if(aux[1].equals("sensitive") && index2 < index1)
+									return "Seguro";
+								else
+									return "Inseguro";
+							}
+						}
 					}
 				}
 			}
 		}
-		
-		for(List<String> l: adj_list){
-			for(String s: l){
+		else if(adj_list.size() == 1){
+			
+			for(String s: adj_list.get(0)){
 				
-				if(s.contains(":")){
-					if(s.contains(var)){
-						
-						aux = s.split(":");
-						if(aux.length >= 2){
-							index2 = l.indexOf(s);
-							if(aux[1].equals("sensitive") && index2 < index1)
-								return "Seguro";
-							else
-								return "Inseguro";
-						}
+				aux = s.split(":");
+				
+				if(aux.length >= 2){
+					
+					if(aux[1].equals("sanitization") || aux[1].equals("sensitive")){
+						var = aux[1];
 					}
+					
+					if(aux[1].equals("input") && var.equals("sensitive"))
+						return "Inseguro";
+					else if(aux[1].equals("input") && !var.equals("sensitive"))
+						return "Seguro";
 				}
 			}
+			
 		}
 		
 		return null;
@@ -106,6 +133,8 @@ public class Verify {
 		
 		dependencies = generateDependencies(code);
 		nature_of_vars = varNature(patterns, code);
+		System.out.println(nature_of_vars);
+		System.out.println(dependencies);
 		
 		for(List<String> list: dependencies){
 			
@@ -138,6 +167,7 @@ public class Verify {
 				aglumerado = new ArrayList<String>();
 			}
 			else if(list.size() == 1){
+				
 				if(nature_of_vars.size()>=1){
 					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
 							if(nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("sanitization"))
@@ -165,6 +195,7 @@ public class Verify {
 		List<String> aux = new ArrayList<String>();
 		String vars = new String();
 		int k =1;
+		String[] vec;
 		
 		if(!code.isEmpty()){
 			
@@ -194,7 +225,11 @@ public class Verify {
 					if(vars != null)
 						aux.add(vars);
 					else{
-						aux.add("sentence"+k++);
+						//FAZER SPLIT DO XSS POR ESPACOS E VERIFICAR A NATUREZA DAS FUNCOES 1 A 1
+						vec = l.get(0).split(" ");
+						
+						for(String s: vec)
+							aux.add("sentence"+k++);
 					}
 				}
 				
@@ -216,18 +251,39 @@ public class Verify {
 		String aux = new String();
 		Map<String, String> var_nature = new HashMap<String, String>();
 		int k=1;
+		String[] vec;
 		
 		for(List<String> list: code){
-			for(String s: list){
-				
-				nature = existsIn(patterns, s);
-				aux = varsUsed(code, s);
-				if(aux != null){
-					var_nature.put(aux, nature);
+			if(list.size()>1){
+				for(String s: list){
+					
+					nature = existsIn(patterns, s);
+					aux = varsUsed(code, s);
+					if(aux != null){
+						var_nature.put(aux, nature);
+					}
+					else{
+						if(nature.equals("sensitive") || nature.equals("sanitization")){
+							var_nature.put("sentence"+k++, nature);
+						}
+					}
 				}
-				else{
-					if(nature.equals("sensitive") || nature.equals("sanitization")){
-						var_nature.put("sentence"+k++, nature);
+			}
+			else if(list.size() == 1){
+				
+				vec = list.get(0).split(" ");
+				
+				for(String s: vec){
+					
+					nature = existsIn(patterns, s);
+					aux = varsUsed(code, s);
+					if(aux != null){
+						var_nature.put(aux, nature);
+					}
+					else{
+						if(nature.equals("sensitive") || nature.equals("sanitization") || nature.equals("input")){
+							var_nature.put("sentence"+k++, nature);
+						}
 					}
 				}
 			}
@@ -244,6 +300,8 @@ public class Verify {
 					return "sensitive";
 				else if(str_code.contains(s) && l.contains("sanitization"))
 					return "sanitization";
+				else if(str_code.contains(s) && l.contains("input"))
+					return "input";
 			}
 		}
 		
