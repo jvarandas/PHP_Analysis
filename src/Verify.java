@@ -22,11 +22,10 @@ public class Verify {
 		php_code = php_parser.parsePHP();
 		
 		adjacency_list = buildAdjacencyList(php_code, patterns);
-		vuln = vulnerability(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
 		System.out.println(adjacency_list);
-		System.out.println(resultado+ " -> "+ vuln);
+		System.out.println(resultado);
 	}
 	
 	
@@ -34,51 +33,51 @@ public class Verify {
 		
 		String[] aux;
 		String var = new String();
-		int index1=0;
-		int index2=0;
-		
-		//REFAZER
+		Map<String, String> vars = new HashMap<String, String>();
+		String res = new String();
+ 		
 		if(adj_list.size()>1){
 			for(List<String> l: adj_list){
 				if(l.size()>1){
 					for(String s: l){
 						
-						if(s.contains(":")){
-							
-							aux = s.split(":");
-							if(aux.length >= 2){
-								if(aux[1].equals("sensitive")){
-									if(aux[0].contains("sentence"))
-										return "Inseguro";
-									else{
-										index1 = l.indexOf(s);
-										var = aux[0];
+						//DEPOIS DE LER O INPUT, SE HOUVER UMA FUNCAO SAN SOBRE O INPUT DA SEGURO
+						//DEPOIS DE LER O INPUT, SE HOUVER UMA FUNCAO SEN SOBRE O INPUT DA INSEGURO
+						
+						if(s.contains("input")){
+							vars.put(l.get(0), "input");
+						}
+						
+						if(!vars.isEmpty()){
+							for(String str: vars.keySet()){
+								
+								if(s.contains(str) && s.contains("sanitization")){
+									if((vars.containsValue("uk") || vars.containsValue("input")) && !res.equals("Inseguro")){
+										return"Seguro";
 									}
 								}
-								else if(aux[1].equals("sanitization") && aux[0].contains("sentence"))
-									return "Seguro";
+								else if(s.contains(str) && s.contains("neither")){
+									if(vars.containsValue("input")){
+										break;
+									}
+								}
+								else if(s.contains(str) && s.contains("sensitive")){
+									if((vars.containsValue("uk") || vars.containsValue("input")) && !res.equals("Seguro")){
+										return "Inseguro";
+									}
+								}
 							}
-						}
-					}
-				}
-			}
-			
-			for(List<String> l: adj_list){
-				for(String s: l){
-					
-					if(s.contains(":")){
-						if(s.contains(var)){
 							
-							aux = s.split(":");
-							if(aux.length >= 2){
-								index2 = l.indexOf(s);
-								if(aux[1].equals("sensitive") && index2 < index1)
-									return "Seguro";
-								else
-									return "Inseguro";
-							}
-						}
-					}
+							vars.put(l.get(0), "uk");
+						}	
+					}	
+				}
+				else if(l.size() == 1){
+					
+					if(l.get(0).contains("sensitive"))
+						return "Inseguro";
+					else if(l.get(0).contains("sanitization"))
+						return "Seguro";
 				}
 			}
 		}
@@ -103,7 +102,7 @@ public class Verify {
 			
 		}
 		
-		return null;
+		return res;
 	}
 	
 	public static List<String> generateNodes(List<List<String>> code){
@@ -211,7 +210,7 @@ public class Verify {
 				adjacency_list.add(aglumerado);
 		}
 		
-		//REMOVER NOS QUE NAO TEM LIGACOES -- REVER
+		//REMOVER NOS QUE NAO TEM LIGACOES
 		for(List<String> l: adjacency_list)
 			if(l.size()<2 && !l.isEmpty())
 				if(!l.get(0).contains(":"))
