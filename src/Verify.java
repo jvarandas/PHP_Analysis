@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
+		ParserPHP php_parser = new ParserPHP("xss_04.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -26,6 +26,9 @@ public class Verify {
 		
 		System.out.println(adjacency_list);
 		System.out.println(resultado);
+		
+		if(resultado.equals("Seguro"))
+			imprimeSani(php_code, patterns);
 	}
 	
 	
@@ -53,7 +56,7 @@ public class Verify {
 								
 								if(s.contains(str) && s.contains("sanitization")){
 									if((vars.containsValue("uk") || vars.containsValue("input")) && !res.equals("Inseguro")){
-										return"Seguro";
+										return "Seguro";
 									}
 								}
 								else if(s.contains(str) && s.contains("neither")){
@@ -103,6 +106,34 @@ public class Verify {
 		}
 		
 		return res;
+	}
+	
+	public static void imprimeSani(List<List<String>> code, List<List<String>> patterns){
+		
+		List<String> func = new ArrayList<String>();
+		List<String> instruction = new ArrayList<String>();
+		String[] aux;
+		
+		for(List<String> list: code){
+			for(String s: list){
+				for(List<String> l: patterns){
+					for(String str: l){							
+						
+						if(s.contains(str) && l.contains(("sanitization"))){
+							func.add(str);
+							instruction.add(s);
+						}
+						
+					}
+				}
+			}
+		}
+		
+		for(String l: func)
+			System.out.println("Sanitization function: "+l);
+		
+		for(String l: instruction)
+			System.out.println("Instruction: "+l);
 	}
 	
 	public static List<String> generateNodes(List<List<String>> code){
