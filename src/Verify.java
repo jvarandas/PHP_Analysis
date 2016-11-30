@@ -11,7 +11,7 @@ public class Verify {
 		
 		PatternsParser patterns_parser = new PatternsParser();
 		List<List<String>> patterns = new ArrayList<List<String>>();
-		ParserPHP php_parser = new ParserPHP("xss_04.txt");
+		ParserPHP php_parser = new ParserPHP("sqli_01.txt");
 		List<List<String>> php_code = new ArrayList<List<String>>();
 		List<List<String>> adjacency_list = new ArrayList<List<String>>();
 		String resultado = new String();
@@ -47,7 +47,7 @@ public class Verify {
 						if(s.contains("input")){
 							vars.put(l.get(0), "input");
 						}
-						
+												
 						if(!vars.isEmpty()){
 							for(String str: vars.keySet()){
 								
@@ -137,13 +137,10 @@ public class Verify {
 		dependencies = generateDependencies(code);
 		nature_of_vars = varNature(patterns, code);
 		
-		System.out.println(dependencies);
-		System.out.println(nature_of_vars);
-		
 		for(List<String> list: dependencies){
 			
 			if(list.size()>1){
-				if(nature_of_vars.size()>=1){
+				if(!nature_of_vars.isEmpty()){
 					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
 							if(nature_of_vars.get(list.get(0)).equals("sanitization") || nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("input"))
 						
@@ -171,7 +168,7 @@ public class Verify {
 			}
 			else if(list.size() == 1){
 				
-				if(nature_of_vars.size()>=1){
+				if(!nature_of_vars.isEmpty()){
 					if(list.get(0).contains("sentence") && nature_of_vars.containsKey(list.get(0))){
 						if(nature_of_vars.get(list.get(0)).equals("sanitization") || nature_of_vars.get(list.get(0)).equals("sensitive") || nature_of_vars.get(list.get(0)).equals("input"))
 							
