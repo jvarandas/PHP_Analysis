@@ -24,6 +24,7 @@ public class Verify {
 		adjacency_list = buildAdjacencyList(php_code, patterns);
 		resultado = computeResult(adjacency_list);
 		
+		System.out.println(php_code);
 		System.out.println(adjacency_list);
 		System.out.println(resultado);
 		
@@ -167,6 +168,8 @@ public class Verify {
 		
 		dependencies = generateDependencies(code);
 		nature_of_vars = varNature(patterns, code);
+		
+		System.out.println(nature_of_vars);
 		
 		for(List<String> list: dependencies){
 			
@@ -346,7 +349,13 @@ public class Verify {
 					nature = existsIn(patterns, list.get(i));
 					aux = varsUsed(code, list.get(i));
 					if(aux != null){
-						var_nature.put(aux, nature);
+						if(list.size()>1)
+							var_nature.put(aux, nature);
+						else{
+							vec = list.get(0).split("\\(");							
+							nature = existsIn(patterns, vec[vec.length-2]);
+							var_nature.put(aux,  nature);
+						}
 					}
 					else{
 						vec = list.get(i).split(" ");
