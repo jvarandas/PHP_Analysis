@@ -1,4 +1,0 @@
-$nis=$_POST['nis'];
-$query="SELECT *FROM siswa WHERE nis='$nis'";
-$san=mysql_escape_string($query);
-$q=mysql_query($san,$koneksi);
