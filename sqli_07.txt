@@ -1,2 +1,0 @@
-$i=$_POST['nis'];
-mysql_escape_string(mysql_query($i))
